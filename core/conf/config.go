@@ -2,18 +2,19 @@ package conf
 
 import (
 	"fmt"
+	"github.com/zeromicro/go-zero/core/mapping"
 	"log"
 	"os"
 	"path"
 	"strings"
 )
 
-var Loaders = map[string]func([]byte, interface{}){
+var Loaders = map[string]func([]byte, interface{}) error{
 	".yaml": LoadFromYamlBytes,
 }
 
 // LoadFromYamlBytes loads config into v from content yaml bytes.
-func LoadFromYamlBytes(content []byte, v interface{}) {
+func LoadFromYamlBytes(content []byte, v interface{}) error {
 	return mapping.UnmarshalYamlBytes(content, v)
 }
 
@@ -26,18 +27,13 @@ func MustLoad(path string, v interface{}) {
 }
 
 func Load(file string, v interface{}) error {
-	print(file)
 	content, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}
-
 	loader, ok := Loaders[strings.ToLower(path.Ext(file))]
-
 	if !ok {
 		return fmt.Errorf("unrecognized file type: %s", file)
 	}
-	println("111", content, loader)
-	loader(content, v)
-	return err
+	return loader(content, v)
 }
